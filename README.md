@@ -1,132 +1,129 @@
-# Git Exercises — Le Git Gourmand
-
-Bienvenue dans ce dépôt d'exercices Git !
-Le contexte fictif : vous travaillez sur le site web du restaurant **Le Git Gourmand**.
-
-## Comment démarrer
-
-1. **Forkez** ce dépôt sur votre compte GitHub
-2. **Clonez** votre fork en local : `git clone <url-de-votre-fork>`
-3. Faites les exercices dans l'ordre que vous souhaitez (ils sont indépendants)
-4. **Pushez** votre travail et envoyez-moi le lien de votre fork
+# Exercices Git
 
 ---
 
 ## Exercice 1 — Rebase
 
-**Branches :** `ex1-rebase/main` et `ex1-rebase/feature`
-
-**Contexte :** La branche `ex1-rebase/feature` (nouvelle page menu) a divergé de
-`ex1-rebase/main` avant que deux commits y soient ajoutés (horaires + contact).
-L'historique n'est plus linéaire.
-
-**Objectif :** Replacer `ex1-rebase/feature` au sommet de `ex1-rebase/main`.
-
-
-**Résultat attendu :** L'historique de `ex1-rebase/feature` est linéaire ;
-ses commits apparaissent *après* ceux de `ex1-rebase/main`.
-
----
-
-## Exercice 2 — Rebase interactif
-
-**Branche :** `ex2-interactive-rebase`
-
-**Contexte :** L'historique de cette branche est chaotique : commits WIP,
-doublons "FINAL / FINAL v2", corrections d'oublis en commits séparés.
-
-**Objectif :** Nettoyer l'historique pour obtenir exactement **3 commits propres** :
-
-| # | Message attendu |
-|---|-----------------|
-| 1 | `init: README` |
-| 2 | `add: style.css` |
-| 3 | `feat: page d'accueil` |
-
-
-*Utilisez `squash`, `fixup` et `reword` dans l'éditeur interactif.*
-
----
-
-## Exercice 3 — Merge avec conflit
-
-**Branches :** `ex3-merge/main` et `ex3-merge/feature`
-
-**Contexte :** Les deux branches ont modifié la même ligne dans `menu.html`
-(le prix des pâtes carbonara) :
-- `ex3-merge/main` → 16 EUR
-- `ex3-merge/feature` → 15 EUR (+ ajout d'une section végétarienne)
-
-**Objectif :** Merger `ex3-merge/feature` dans `ex3-merge/main` et résoudre le conflit.
-Le chef a tranché : **le bon prix est 16 EUR**.
+**Objectif :** Rebaser une branche feature sur main.
 
 ```bash
-git checkout ex3-merge/main
+git checkout ex1-rebase/feature
+git rebase ex1-rebase/main
+```
+
+**Résultat :** Les commits de la branche feature (`feat: ajouter page menu`, `feat: ajouter les plats du menu`) sont rejoués au-dessus des derniers commits de `main`, produisant un historique linéaire et propre.
+
+```
+* cdcaf84 feat: ajouter les plats du menu
+* c152e32 feat: ajouter page menu
+* 1cea8a2 feat: ajouter page contact
+* 3c3fb42 fix: corriger les horaires d'ouverture
+* c7a7860 feat: ajouter description du restaurant
+* 93b9c5b init: page d'accueil
+* 805ccf9 root: point de depart commun
+```
+
+---
+
+## Exercice 2 — Rebase Interactif
+
+**Objectif :** Nettoyer un historique de commits désordonné avec `rebase -i`, puis corriger un message de commit avec `--amend`.
+
+```bash
+git rebase -i HEAD~8
+git commit --amend -m "feat: page d'accueil"
+```
+
+**Résultat :** Plusieurs commits WIP sont regroupés et réorganisés, et le message du commit final est corrigé.
+
+```
+cb30a41 feat: page d'accueil
+5bf9683 add: style.css
+b61738e init: README
+805ccf9 root: point de depart commun
+```
+
+---
+
+## Exercice 3 — Merge avec Résolution de Conflit
+
+**Objectif :** Fusionner une branche feature dans main en résolvant manuellement un conflit de contenu.
+
+```bash
 git merge ex3-merge/feature
-# Ouvrir menu.html, résoudre le conflit, garder 16 EUR
-git add menu.html
-git commit
+# Conflit dans menu.html → résolution manuelle
+git checkout HEAD -- menu.html
+```
+
+**Résultat :** Le conflit sur `menu.html` (prix des pâtes) est résolu en choisissant la bonne version (16 EUR), et le commit de merge documente la résolution.
+
+```
+*   77a84ca Merge ex3-merge/feature: résolution conflit prix 16 EUR
+|\
+| * 31829cd feat: ajuster le prix des pates
+| * 1081ac7 feat: ajouter section vegetarienne
+* | 35c4c3f fix: mettre a jour le prix des pates
+|/
+* d2d8a68 init: page menu
 ```
 
 ---
 
 ## Exercice 4 — Squash
 
-**Branches :** `ex4-squash/main` et `ex4-squash/feature`
-
-**Contexte :** La branche `ex4-squash/feature` contient 5 commits WIP pour
-l'ajout d'un footer. Il faut les intégrer dans main en un seul commit propre.
-
-**Objectif :** Squasher tous les commits de `ex4-squash/feature` en un seul
-avant de les intégrer.
+**Objectif :** Regrouper plusieurs commits WIP en un seul commit propre avant de fusionner dans main.
 
 ```bash
-...  TODO ...
-git commit -m "feat: ajouter le footer complet"
+git checkout ex4-squash/feature
+git rebase -i ex4-squash/main        # regrouper tous les commits WIP en un seul
+git commit --amend -m "feat: ajouter le footer complet"
+git checkout ex4-squash/main
+git merge ex4-squash/feature          # fusion en fast-forward
+```
+
+**Résultat :** Cinq commits WIP du footer sont regroupés en un seul commit explicite, et la fusion dans main se fait en fast-forward proprement.
+
+```
+* eaeb040 feat: ajouter le footer complet
+* 8d3b7bc feat: ajouter le header
+* f8dc175 init: page index
+* 805ccf9 root: point de depart commun
 ```
 
 ---
 
 ## Exercice 5 — Cherry-pick
 
-**Branches :** `ex5-cherrypick/main` et `ex5-cherrypick/feature`
-
-**Contexte :** La branche `ex5-cherrypick/feature` contient 5 commits, mais
-seuls **2 sont critiques** et doivent être appliqués sur `ex5-cherrypick/main` :
-
-| Commit à récupérer | Pourquoi |
-|--------------------|----------|
-| `hotfix: corriger le lien de navigation casse` | Bug visible en prod |
-| `fix: corriger la faille XSS dans le formulaire contact` | Faille de sécurité |
-
-Les autres commits (page "à propos", mode sombre expérimental, refacto WIP)
-ne doivent **pas** être mergés.
-
-**Objectif :**
+**Objectif :** Appliquer uniquement certains commits d'une branche feature sur main, en ignorant les autres.
 
 ```bash
-# 1. Trouver les hashes des deux commits
-git log --oneline ex5-cherrypick/feature
-
-# 2. Cherry-picker les deux commits sur main
 git checkout ex5-cherrypick/main
-git cherry-pick <hash-du-hotfix>
-git cherry-pick <hash-du-fix-xss>
+git cherry-pick 7545bd5   # hotfix: corriger le lien de navigation casse
+git cherry-pick a9144ae   # fix: corriger la faille XSS dans le formulaire contact
+```
+
+Les commits suivants de la branche feature ont été **intentionnellement exclus** :
+- `feat: mode sombre experimental (ne pas merger)`
+- `WIP: refacto complete du CSS`
+
+**Résultat :** Seuls les correctifs pertinents sont portés sur main, sans embarquer du travail inachevé ou expérimental.
+
+```
+* c550c99 fix: corriger la faille XSS dans le formulaire contact
+* 3567b06 hotfix: corriger le lien de navigation casse
+* 42e6052 feat: ajouter galerie photos
+* e293ba5 init: page d'accueil
+* 805ccf9 root: point de depart commun
 ```
 
 ---
 
-## Récapitulatif des branches
+## Récapitulatif
 
-| Branche | Exercice | Rôle |
-|---------|----------|------|
-| `ex1-rebase/main` | Rebase | Branch cible |
-| `ex1-rebase/feature` | Rebase | Branch à rebaser |
-| `ex2-interactive-rebase` | Rebase interactif | Historique à nettoyer |
-| `ex3-merge/main` | Merge | Branch cible |
-| `ex3-merge/feature` | Merge | Branch à merger (conflit!) |
-| `ex4-squash/main` | Squash | Branch cible |
-| `ex4-squash/feature` | Squash | Branch à squasher |
-| `ex5-cherrypick/main` | Cherry-pick | Branch cible |
-| `ex5-cherrypick/feature` | Cherry-pick | Source des commits |
-
+| Exercice | Concept | Commande principale |
+|----------|---------|---------------------|
+| 1 | Rebase sur main | `git rebase <branche>` |
+| 2 | Rebase interactif + amend | `git rebase -i`, `git commit --amend` |
+| 3 | Résolution de conflit de merge | `git merge`, résolution manuelle |
+| 4 | Regroupement de commits (squash) | `git rebase -i` (squash), fusion fast-forward |
+| 5 | Sélection de commits spécifiques | `git cherry-pick <hash>` |
